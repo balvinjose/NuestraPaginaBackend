@@ -17,42 +17,37 @@ public class ServidorWeb {
     public static void main(String[] args)
             throws IOException {
 
+        String puertoVariable =
+                System.getenv("PORT");
+
+        int puerto =
+                puertoVariable != null
+                        ? Integer.parseInt(puertoVariable)
+                        : 8080;
+
         HttpServer servidor =
                 HttpServer.create(
-                        new InetSocketAddress(8080),
+                        new InetSocketAddress(
+                                "0.0.0.0",
+                                puerto
+                        ),
                         0
                 );
-
-
-        // =========================
-        // API PRINCIPAL
-        // =========================
 
         servidor.createContext(
                 "/api",
                 ServidorWeb::responder
         );
 
-
-        // =========================
-        // ELEMENTOS
-        // =========================
-
         servidor.createContext(
                 "/api/elementos",
                 ApiElementos::agregar
         );
 
-
-        // =========================
-        // CATEGORÍAS
-        // =========================
-
         servidor.createContext(
                 "/api/categorias",
                 ApiCategorias::manejar
         );
-
 
         servidor.start();
 
@@ -65,14 +60,13 @@ public class ServidorWeb {
         );
 
         System.out.println(
-                "http://localhost:8080/api"
+                "Puerto: " + puerto
         );
 
         System.out.println(
                 "================================="
         );
     }
-
 
     private static void responder(
             HttpExchange intercambio
@@ -99,13 +93,14 @@ public class ServidorWeb {
                         "*"
                 );
 
+        byte[] datos =
+                respuesta.getBytes(
+                        StandardCharsets.UTF_8
+                );
+
         intercambio.sendResponseHeaders(
                 200,
-                respuesta
-                        .getBytes(
-                                StandardCharsets.UTF_8
-                        )
-                        .length
+                datos.length
         );
 
         try (
@@ -113,11 +108,7 @@ public class ServidorWeb {
                         intercambio.getResponseBody()
         ) {
 
-            salida.write(
-                    respuesta.getBytes(
-                            StandardCharsets.UTF_8
-                    )
-            );
+            salida.write(datos);
         }
     }
 }
